@@ -3,3 +3,4 @@ $:.unshift(File.dirname(__FILE__)) unless
 
 require "rubygems"
 require "nokogiri"
+require "linkay/gadgets"
