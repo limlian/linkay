@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs title="Hello World!"
+               title_url="http://www.example.com/hello_world"
+               description="This is hello world gadget"
+               author="Hello World"
+               author_email="hello.world@example.com"
+               screenshot="http://www.example.com/screenshot.png">
+    <Require feature="opensocial-0.8" />
+    <Require feature="dynamic-height" />
+    <Optional feature="feature-with-params">
+      <Param name="paramName" />
+    </Optional>
+    <Preload href="http://www.example.com/href" 
+             authz="oauth"
+             sign_owner="true"
+             sign_viewer="true"
+             views="views"
+             oauth_service_name="example.com"
+             oauth_token_name="example_token"
+             oauth_request_token="example_request_token"
+             oauth_request_token_secret="example_request_token_secret" />
+    <Icon mode="base64" type="image/png">http://example.com/icon.png</Icon>
+    <Locale country="ALL" lang="zh-cn" language_direction="ltr" messages="http://example.com/zh_cn_ALL.xml" />
+    <Locale country="ALL" lang="en-us" language_direction="rtl" messages="http://example.com/en_us_ALL.xml" />
+    <Locale country="ALL" lang="" language_direction="ltr">
+      <msg name="example" desc="name of example">example</msg>
+    </Locale>
+    <Link rel="event.addapp" href="http://www.example.com/add" />
+    <OAuth name="example_oauth">
+      <Service>
+        <Request url="http://example.com/request" method="GET" param_location="auth-header"/>
+        <Access url="http://example.com/access" method="GET" param_location="auth-header"/>
+        <Authorization url="http://example.com/authorization" />
+      </Service>
+    </OAuth>
+  </ModulePrefs>
+  <UserPref name="difficult"
+            display_name="Difficulty"
+            datatype="enum"
+            default_value="4">
+    <EnumValue value="3" display_value="Easy"/>
+    <EnumValue value="4" display_value="Medium"/>
+    <EnumValue value="5" display_value="Hard"/>
+  </UserPref>
+  <Content type="html">
+    <![CDATA[
+     Hello, default world!
+    ]]>
+  </Content>
+  <Content type="html" view="home">
+    <![CDATA[
+      Hello, home world!
+    ]]>  
+  </Content>
+  <Content type="html" view="canvas, profile">
+    <![CDATA[
+      Hello, canvas and profile world!
+    ]]>
+  </Content>
+</Module>
