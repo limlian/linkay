@@ -71,8 +71,18 @@ EOS
           mps.show_stats.should be_true
           mps.show_in_directory.should be_true
           mps.singleton.should be_true
+          mps.features.should_not be_nil
         end
 
+        it "should raise exception when missing title attribute" do
+          missing_title_xml = <<EOS
+            <ModulePrefs />
+EOS
+          lambda {
+            mps = ModulePrefs.new(Nokogiri::XML(missing_title_xml).root, SPEC_URL)
+          }.should raise_error(GSpecParserError, "Modulepref's title attribute is required")
+        end
+        
         it "should parse module prefs correctly with title attribute" do
           double_moduleprefs_title_xml = <<EOS
           <ModulePrefs
@@ -86,6 +96,7 @@ EOS
         it "should parse module prefs correctly with scrolling attribute" do
           scrolling_true_xml = <<EOS
           <ModulePrefs
+            title="title"
             scrolling="true"/>
 EOS
           mps = ModulePrefs.new(Nokogiri::XML(scrolling_true_xml).root, SPEC_URL)
@@ -93,6 +104,7 @@ EOS
 
           scrolling_false_xml = <<EOS
           <ModulePrefs
+            title="title"
             scrolling="false"/>
 EOS
           mps = ModulePrefs.new(Nokogiri::XML(scrolling_false_xml).root, SPEC_URL)
@@ -100,6 +112,7 @@ EOS
 
           scrolling_not_so_true_xml = <<EOS
           <ModulePrefs
+            title="title"
             scrolling="not_so_true"/>
 EOS
           mps = ModulePrefs.new(Nokogiri::XML(scrolling_not_so_true_xml).root, SPEC_URL)
@@ -109,6 +122,7 @@ EOS
         it "should parse module prefs correctly with category attributes" do
           category_xml = <<EOS
             <ModulePrefs
+              title="title"
               category="category1"/>
 EOS
           mps = ModulePrefs.new(Nokogiri::XML(category_xml).root, SPEC_URL)
@@ -116,6 +130,7 @@ EOS
 
           two_categories_xml = <<EOS
             <ModulePrefs
+              title="title"
               category="category1"
               category2="category2" />
 EOS
@@ -123,16 +138,51 @@ EOS
           mps.categories.should == ["category1", "category2"]
 
           none_categories_xml = <<EOS
-            <ModulePrefs />
+            <ModulePrefs
+               title="title"/>
 EOS
           mps = ModulePrefs.new(Nokogiri::XML(none_categories_xml).root, SPEC_URL)
           mps.categories.should == ["", ""]
         end
 
-        
+        it "should parse module prefs correctly with features sub tags" do
+          xml = <<EOS
+          <ModulePrefs
+               title="title">
+            <Require feature='require'/>
+            <Optional feature='optional'/>
+          </ModulePrefs>
+EOS
+          mps = ModulePrefs.new(Nokogiri::XML(xml).root, SPEC_URL)
+          mps.features.should be_an_instance_of(Hash)
+          mps.features.has_key?("require").should be_true
+          mps.features.has_key?("optional").should be_true
+          mps.features["require"].should be_an_instance_of(Feature)
+          mps.features["require"].name.should == "require"
+          mps.features["require"].is_required?.should be_true
+          mps.features["optional"].should be_an_instance_of(Feature)
+          mps.features["optional"].name.should == "optional"
+          mps.features["optional"].is_required?.should be_false
+        end
+
+        it "should parse module prefs correctly with features with parameters" do
+          xml = <<EOS
+          <ModulePrefs
+               title="title">
+            <Require feature='my_feature'>
+              <Param name='my_param1'>my_value1</Param>
+              <Param name='my_param2'>my_value2</Param>
+            </Require>
+          </ModulePrefs>
+EOS
+          mps = ModulePrefs.new(Nokogiri::XML(xml).root, SPEC_URL)
+          mps.features["my_feature"].should be_an_instance_of(Feature)
+          mps.features["my_feature"].name.should == "my_feature"
+          mps.features["my_feature"].params.should be_an_instance_of(Hash)
+          mps.features["my_feature"].params["my_param1"].should == "my_value1"
+          mps.features["my_feature"].params["my_param2"].should == "my_value2"
+        end
       end
-
-
     end
   end
 end

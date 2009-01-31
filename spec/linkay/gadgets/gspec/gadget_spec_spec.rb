@@ -22,7 +22,7 @@ EOF
           gspec.views['default'].should be_an_instance_of(View)
         end
 
-        it "should raise exception when missing module prefs" do
+        it "should raise exception when missing or have more than one module prefs" do
           gadget_xml = <<EOF
 <Module>
   <UserPref name="foo" datatype="string" />
@@ -44,6 +44,16 @@ EOF
             gspec  = GadgetSpec.new(SPEC_URL, gadget_xml)          
           }.should raise_error(GSpecParserError, "Exactly 1 ModulePrefs is required!")
         end
+
+        it "should work with conent" do
+          gadget_xml = <<EOS
+<Module>
+  <ModulePrefs title="title" />
+  
+</Module>
+EOS
+        end
+
       end
     end
   end
