@@ -2,7 +2,7 @@ module Linkay
   module Gadgets
     module GSpec
       class ModulePrefs
-        attr_reader :url, :features
+        attr_reader :url, :features, :icon, :links, :preloads, :oauth
         
         def initialize(elem, url)
           @url = url          
@@ -18,6 +18,14 @@ module Linkay
               create_feature node
             when "Optional"
               create_feature node
+            when "Icon"
+              create_icon node
+            when "Link"
+              create_link node
+            when "Preload"
+              create_preload node
+            when "OAuth"
+              create_oauth node
             end
           end
         end
@@ -131,6 +139,24 @@ module Linkay
           @features = Hash.new if @features.nil?
           @features[node.attributes["feature"]] = Feature.new(node)
         end        
+
+        def create_icon(node)
+          @icon = Icon.new(node)
+        end
+
+        def create_link(node)
+          @links = Array.new if @links.nil?
+          @links.push Link.new(node)
+        end
+
+        def create_preload(node)
+          @preloads = Array.new if @preloads.nil?
+          @preloads.push Preload.new(node)
+        end
+
+        def create_oauth(node)
+          @oauth = OAuth.new(node)
+        end
       end
 
       class Feature
@@ -151,6 +177,71 @@ module Linkay
 
         def is_required?
           @require
+        end
+      end
+
+      class Icon
+        attr_reader :type, :mode, :content
+        
+        def initialize(node)
+          @type = node.attributes["type"]
+          @mode = node.attributes["mode"]
+          @content = node.content
+        end
+      end
+
+      class Link
+        attr_reader :href, :rel
+        
+        def initialize(node)
+          @href = node.attributes["href"]
+          @rel = node.attributes["rel"]
+        end
+      end
+      
+      class Preload
+        attr_reader :href, :authz
+        
+        def initialize(node)
+          @href = node.attributes["href"]
+          @authz = node.attributes["authz"]
+        end
+      end
+
+      class OAuth
+        attr_reader :services
+
+        def initialize(node)
+          @services = Hash.new
+          node.xpath("//Service").to_ary.each do |s| 
+            @services[s.attributes["name"]] = Service.new(s)
+          end
+        end
+      end
+
+      class Service
+        attr_reader :request, :access, :authorization
+
+        def initialize(node)
+          request_node = node.xpath("//Request")[0]
+          unless request_node.nil? 
+            @request = Hash.new
+            @request["url"] = request_node.attributes["url"]
+            @request["param_location"] = request_node.attributes["param_location"]
+            @request["method"] = request_node.attributes["method"]
+          end
+          access_node = node.xpath("//Access")[0]
+          unless access_node.nil?
+            @access = Hash.new
+            @access["url"] = access_node.attributes["url"]
+            @access["param_location"] = access_node.attributes["param_location"]
+            @access["method"] = access_node.attributes["method"]
+          end
+          authorization_node = node.xpath("//Authorization")[0]
+          unless authorization_node.nil?
+            @authorization = Hash.new
+            @authorization["url"] = authorization_node["url"]
+          end
         end
       end
     end

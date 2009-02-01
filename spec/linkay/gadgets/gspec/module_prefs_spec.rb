@@ -182,6 +182,88 @@ EOS
           mps.features["my_feature"].params["my_param1"].should == "my_value1"
           mps.features["my_feature"].params["my_param2"].should == "my_value2"
         end
+
+        it "should parse module prefs correctly with icon sub tag" do
+          xml = <<EOS
+          <ModulePrefs
+               title="title">
+            <Icon type="foo" mode="base64">HelloWorld</Icon>
+          </ModulePrefs> 
+EOS
+          mps = ModulePrefs.new(Nokogiri::XML(xml).root, SPEC_URL)
+          mps.icon.should be_an_instance_of(Icon)
+          mps.icon.type.should == "foo"
+          mps.icon.mode.should == "base64"
+          mps.icon.content.should == "HelloWorld"
+        end
+
+        it "should parse module prefs correctly with link tag" do
+          xml = <<EOS
+          <ModulePrefs
+               title="title">
+            <Link href="help_link" rel="gadgets.help"/>
+            <Link href="support_link" rel="gadgets.support"/>
+          </ModulePrefs>
+EOS
+          mps = ModulePrefs.new(Nokogiri::XML(xml).root, SPEC_URL)
+          mps.links.should be_an_instance_of(Array)
+          mps.links[0].should be_an_instance_of(Link)
+          mps.links[0].href.should == "help_link"
+          mps.links[0].rel.should == "gadgets.help"
+          mps.links[1].href.should == "support_link"
+          mps.links[1].rel.should == "gadgets.support"
+        end
+
+        it "should parse module prefs correctly with Preload tag" do
+          xml = <<EOS
+          <ModulePrefs
+               title="title">
+            <Preload href="preload_url1" authz="oauth"/>
+            <Preload href="preload_url2" authz="signed"/>
+          </ModulePrefs>
+EOS
+          mps = ModulePrefs.new(Nokogiri::XML(xml).root, SPEC_URL)
+          mps.preloads.should be_an_instance_of(Array)
+          mps.preloads[0].should be_an_instance_of(Preload)
+          mps.preloads[0].href.should == "preload_url1"
+          mps.preloads[0].authz.should == "oauth"
+          mps.preloads[1].href.should == "preload_url2"
+          mps.preloads[1].authz.should == "signed"
+        end
+
+        it "should parse module prefs correctly with OAuth tag" do
+          xml = <<EOS
+          <ModulePrefs
+              title="title">
+            <OAuth>
+              <Service name="one">
+                <Request url="http://req.example.com" param_location="uri-query" method="POST"/>
+                <Access url="http://acc.example.com" param_location="uri-query" method="GET"/>
+                <Authorization url="http://azn.example.com"/>
+              </Service>
+              <Service name="two">
+                <Request url="http://two.example.com/req"/>
+                <Access url="http://two.example.com"/>
+                <Authorization url="http://two.example.com/authorize"/>
+              </Service>
+            </OAuth>
+          </ModulePrefs>
+EOS
+          mps = ModulePrefs.new(Nokogiri::XML(xml).root, SPEC_URL)
+          mps.oauth.should be_an_instance_of(OAuth)
+          mps.oauth.services.should be_an_instance_of(Hash)
+          mps.oauth.services["one"].should be_an_instance_of(Service)
+          mps.oauth.services["one"].request["url"].should == "http://req.example.com"
+          mps.oauth.services["one"].request["param_location"].should == "uri-query"
+          mps.oauth.services["one"].request["method"].should == "POST"
+          mps.oauth.services["one"].access["url"].should == "http://acc.example.com"
+          mps.oauth.services["one"].access["param_location"].should == "uri-query"
+          mps.oauth.services["one"].access["method"].should == "GET"
+          mps.oauth.services["one"].authorization["url"].should == "http://azn.example.com"
+          mps.oauth.services["two"].should be_an_instance_of(Service)
+
+        end
+
       end
     end
   end
