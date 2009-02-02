@@ -261,10 +261,9 @@ EOS
           mps.oauth.services["one"].access["method"].should == "GET"
           mps.oauth.services["one"].authorization["url"].should == "http://azn.example.com"
           mps.oauth.services["two"].should be_an_instance_of(Service)
-
         end
-
       end
+
     end
   end
 end
