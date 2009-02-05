@@ -48,10 +48,12 @@ EOF
         it "should work with conent" do
           gadget_xml = <<EOS
 <Module>
-  <ModulePrefs title="title" />
-  
+  <ModulePrefs title="title" />  
 </Module>
 EOS
+          lambda{
+            gspec  = GadgetSpec.new(SPEC_URL, gadget_xml)          
+          }.should raise_error(GSpecParserError, "At least 1 content is required!")
         end
 
       end

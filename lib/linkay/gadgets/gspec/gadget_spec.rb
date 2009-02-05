@@ -20,7 +20,39 @@ module Linkay
           end
 
           xml.xpath('/Module/UserPref').each{|elem| @userPrefs.push(UserPref.new(elem))}
-          @views['default'] = View.new('default', xml.xpath('/Module/Content')[0], url)      
+
+          if(xml.xpath('/Module/Content').length < 1)
+            raise GSpecParserError, "At least 1 content is required!"
+          end
+            
+          xml.xpath('/Module/Content').each do |elem|
+            view_list = get_view_list(elem.attributes['view'])
+            
+            view_list.each do |view|
+              if @views[view].nil?
+                @views[view] = View.new(view, elem, url)
+              else
+                raise GSpecParserError, "Conflict content type for view: #{view}" unless @views[view].content_type == elem.attributes['type']
+                @views[view].append_content(elem)
+              end
+            end
+          end
+        end
+        
+        private
+
+        def get_view_list(view_name)
+          view_list = Array.new
+
+          if view_name.nil?
+            view_list.push('default')
+          else
+            view_name.split(',').each do |e|
+              view_list.push(e.strip)
+            end
+          end
+          
+          return view_list
         end
       end
       
