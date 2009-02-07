@@ -2,8 +2,40 @@ module Linkay
   module Gadgets
     module GSpec
 
+      module GSpecParserHelper
+        def get_str_value_from_attr(attr)
+          if attr.nil?
+            return nil
+          else
+            return attr.value
+          end
+        end
+
+        def get_num_value_from_attr(attr)
+          if attr.nil?
+            return nil
+          else
+            return attr.value.to_i
+          end
+        end
+        
+        def get_boolean_value_from_attr(attr)
+          if attr.nil?
+            return nil
+          else
+            if attr.value == "true"
+              return true
+            else
+              return false
+            end
+          end
+        end
+      end
+
       #Gadget specification parse class
       class GadgetSpec
+        include GSpecParserHelper
+
         attr_reader :url, :modulePrefs, :userPrefs, :views
         
         def initialize(url, xml_str)
@@ -26,13 +58,15 @@ module Linkay
           end
             
           xml.xpath('/Module/Content').each do |elem|
-            view_list = get_view_list(elem.attributes['view'])
+            view_list = get_view_list(get_str_value_from_attr(elem.attributes['view']))
             
             view_list.each do |view|
               if @views[view].nil?
                 @views[view] = View.new(view, elem, url)
               else
-                raise GSpecParserError, "Conflict content type for view: #{view}" unless @views[view].content_type == elem.attributes['type']
+                unless @views[view].content_type == get_str_value_from_attr(elem.attributes['type'])
+                  raise GSpecParserError, "Conflict content type for view: #{view}" 
+                end
                 @views[view].append_content(elem)
               end
             end
@@ -59,6 +93,7 @@ module Linkay
       # Error for specification parse
       class GSpecParserError < RuntimeError
       end
+
 
     end
   end

@@ -2,6 +2,8 @@ module Linkay
   module Gadgets
     module GSpec
       class UserPref
+        include GSpecParserHelper
+
         attr_reader :enum_values
 
         def initialize(elem)
@@ -11,30 +13,32 @@ module Linkay
             raise GSpecParserError, "UserPref's name attribute is required"
           end
 
-          elem.children.each_with_index do |node, i|
-            @enum_values = Array.new if @enum_values.nil?
-            if node.attributes['default_value'].nil?
-              @enum_values[i] = node.attributes['value'].to_i
-            else
-              @enum_values[i] = node.attributes['default_value']
+          elem.children.each do |node|
+            if node.elem? 
+              @enum_values = Array.new if @enum_values.nil?
+              if node.attributes['default_value'].nil?
+                @enum_values.push get_num_value_from_attr(node.attributes['value'])
+              else
+                @enum_values.push get_str_value_from_attr(node.attributes['default_value'])
+              end
             end
           end
         end
 
         def name
-          @attributes['name']
+          get_str_value_from_attr(@attributes['name'])
         end
         
         def display_name
-          @attributes['display_name']
+          @attributes['display_name'].value
         end
 
         def default_value
-          @attributes['default_value']
+          @attributes['default_value'].value
         end
 
         def required
-          if @attributes['required'] == 'true'
+          if @attributes['required'].value == 'true'
             return true
           else
             return false
@@ -42,31 +46,31 @@ module Linkay
         end
         
         def datatype
-          @attributes['datatype']
+          @attributes['datatype'].value
         end
 
         def urlparam
-          @attributes['urlparam']
+          @attributes['urlparam'].value
         end
 
         def autocomplete_url
-          @attributes['autocomplete_url']
+          @attributes['autocomplete_url'].value
         end
 
         def num_minval
-          @attributes['num_minval'].to_i
+          @attributes['num_minval'].value.to_i
         end
 
         def num_maxval
-          @attributes['num_maxval'].to_i
+          @attributes['num_maxval'].value.to_i
         end
 
         def str_maxlen
-          @attributes['str_maxlen'].to_i
+          @attributes['str_maxlen'].value.to_i
         end
         
         def restrict_to_completions
-          if @attributes['restrict_to_completions'] == 'true'
+          if @attributes['restrict_to_completions'].value == 'true'
             return true
           else
             return false
@@ -74,7 +78,7 @@ module Linkay
         end
 
         def prefix_match
-          if @attributes['prefix_match'] == 'true'
+          if @attributes['prefix_match'].value == 'true'
             return true
           else
             return false
@@ -82,7 +86,7 @@ module Linkay
         end
 
         def publish
-          if @attributes['publish'] == 'true'
+          if @attributes['publish'].value == 'true'
             return true
           else
             return false
@@ -90,7 +94,7 @@ module Linkay
         end
 
         def listen
-          if @attributes['listen'] == 'true'
+          if @attributes['listen'].value == 'true'
             return true
           else
             return false
@@ -98,11 +102,11 @@ module Linkay
         end
 
         def on_change
-          @attributes['on_change']
+          @attributes['on_change'].value
         end
 
         def group
-          @attributes['group']
+          @attributes['group'].value
         end
       end
     end

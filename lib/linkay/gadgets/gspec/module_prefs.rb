@@ -2,6 +2,8 @@ module Linkay
   module Gadgets
     module GSpec
       class ModulePrefs
+        include GSpecParserHelper
+
         attr_reader :url, :features, :icon, :links, :preloads, :oauth
         
         def initialize(elem, url)
@@ -31,113 +33,97 @@ module Linkay
         end
 
         def title
-          @attributes['title']
+          get_str_value_from_attr @attributes['title']
         end
 
         def title_url
-          @attributes['title_url']
+          get_str_value_from_attr @attributes['title_url']
         end
 
         def description
-          @attributes['description']
+          get_str_value_from_attr @attributes['description']
         end
 
         def author
-          @attributes['author']
+          get_str_value_from_attr @attributes['author']
         end
 
         def author_email
-          @attributes['author_email']
+          get_str_value_from_attr @attributes['author_email']
         end
 
         def screenshot
-         @attributes['screenshot']
+          get_str_value_from_attr @attributes['screenshot']
         end
 
         def thumbnail
-          @attributes['thumbnail']
+          get_str_value_from_attr @attributes['thumbnail']
         end
 
         def directory_title
-          @attributes['directory_title']
+          get_str_value_from_attr @attributes['directory_title']
         end
 
         def width
-          @attributes['width'].to_i
+          get_num_value_from_attr @attributes['width']
         end
 
         def height
-          @attributes['height'].to_i
+          get_num_value_from_attr @attributes['height']
         end
 
         def scrolling
-          if @attributes['scrolling'] == "true"
-            return true
-          else
-            return false
-          end
+          get_boolean_value_from_attr @attributes['scrolling'] 
         end
 
         def categories
           cats = ["",""]
-          cats[0] = @attributes["category"] unless @attributes["category"].nil?
-          cats[1] = @attributes["category2"] unless @attributes["category2"].nil?
+          cats[0] = get_str_value_from_attr(@attributes["category"]) unless @attributes["category"].nil?
+          cats[1] = get_str_value_from_attr(@attributes["category2"]) unless @attributes["category2"].nil?
           return cats
         end
 
         def author_affiliation
-          @attributes['author_affiliation']
+          get_str_value_from_attr @attributes['author_affiliation']
         end
 
         def author_location
-          @attributes['author_location']
+          get_str_value_from_attr @attributes['author_location']
         end
 
         def author_photo
-          @attributes['author_photo']
+          get_str_value_from_attr @attributes['author_photo']
         end
 
         def author_aboutme
-          @attributes['author_aboutme']
+          get_str_value_from_attr @attributes['author_aboutme']
         end
 
         def author_quote
-          @attributes['author_quote']
+          get_str_value_from_attr @attributes['author_quote']
         end
 
         def author_link
-          @attributes['author_link']
+          get_str_value_from_attr @attributes['author_link']
         end
 
         def show_stats
-          if @attributes['show_stats'] == 'true'
-            return true
-          else
-            return false
-          end
+          get_boolean_value_from_attr @attributes['show_stats']
         end
 
         def show_in_directory
-          if @attributes['show_in_directory'] == 'true'
-            return true
-          else
-            return false
-          end
+          get_boolean_value_from_attr @attributes['show_in_directory']
         end
 
         def singleton
-          if @attributes['singleton'] == 'true'
-            return true
-          else
-            return false
-          end
+          get_boolean_value_from_attr @attributes['singleton']
         end
         
         private 
 
         def create_feature(node)
           @features = Hash.new if @features.nil?
-          @features[node.attributes["feature"]] = Feature.new(node)
+          @features[get_str_value_from_attr(node.attributes["feature"])] = Feature.new(node)
         end        
 
         def create_icon(node)
@@ -160,10 +146,12 @@ module Linkay
       end
 
       class Feature
+        include GSpecParserHelper
+
         attr_reader :name, :params
         
         def initialize(node)
-          @name = node.attributes['feature']
+          @name = get_str_value_from_attr(node.attributes['feature'])
           if node.name == "Require" then
             @require = true
           else
@@ -171,7 +159,9 @@ module Linkay
           end          
           @params = Hash.new
           node.children.each {|node|
-            @params[node.attributes["name"]] = node.content
+            if node.elem?
+              @params[get_str_value_from_attr(node.attributes["name"])] = node.content
+            end
           }
         end
 
@@ -181,61 +171,70 @@ module Linkay
       end
 
       class Icon
+        include GSpecParserHelper
+
         attr_reader :type, :mode, :content
         
         def initialize(node)
-          @type = node.attributes["type"]
-          @mode = node.attributes["mode"]
+          @type = get_str_value_from_attr(node.attributes["type"])
+          @mode = get_str_value_from_attr(node.attributes["mode"])
           @content = node.content
         end
       end
 
       class Link
+        include GSpecParserHelper
+
         attr_reader :href, :rel
         
         def initialize(node)
-          @href = node.attributes["href"]
-          @rel = node.attributes["rel"]
+          @href = get_str_value_from_attr(node.attributes["href"])
+          @rel = get_str_value_from_attr(node.attributes["rel"])
         end
       end
       
       class Preload
+        include GSpecParserHelper
+
         attr_reader :href, :authz
         
         def initialize(node)
-          @href = node.attributes["href"]
-          @authz = node.attributes["authz"]
+          @href = get_str_value_from_attr(node.attributes["href"])
+          @authz = get_str_value_from_attr(node.attributes["authz"])
         end
       end
 
       class OAuth
+        include GSpecParserHelper
+
         attr_reader :services
 
         def initialize(node)
           @services = Hash.new
           node.xpath("//Service").to_ary.each do |s| 
-            @services[s.attributes["name"]] = Service.new(s)
+            @services[get_str_value_from_attr(s.attributes["name"])] = Service.new(s)
           end
         end
       end
 
       class Service
+        include GSpecParserHelper
         attr_reader :request, :access, :authorization
 
         def initialize(node)
           request_node = node.xpath("//Request")[0]
           unless request_node.nil? 
             @request = Hash.new
-            @request["url"] = request_node.attributes["url"]
-            @request["param_location"] = request_node.attributes["param_location"]
-            @request["method"] = request_node.attributes["method"]
+            @request["url"] = get_str_value_from_attr(request_node.attributes["url"])
+            @request["param_location"] = get_str_value_from_attr(request_node.attributes["param_location"])
+            @request["method"] = get_str_value_from_attr(request_node.attributes["method"])
           end
           access_node = node.xpath("//Access")[0]
           unless access_node.nil?
             @access = Hash.new
-            @access["url"] = access_node.attributes["url"]
-            @access["param_location"] = access_node.attributes["param_location"]
-            @access["method"] = access_node.attributes["method"]
+            @access["url"] = get_str_value_from_attr(access_node.attributes["url"])
+            @access["param_location"] = get_str_value_from_attr(access_node.attributes["param_location"])
+            @access["method"] = get_str_value_from_attr(access_node.attributes["method"])
           end
           authorization_node = node.xpath("//Authorization")[0]
           unless authorization_node.nil?
@@ -244,6 +243,7 @@ module Linkay
           end
         end
       end
+
     end
   end
 end

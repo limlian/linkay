@@ -83,16 +83,6 @@ EOS
           }.should raise_error(GSpecParserError, "Modulepref's title attribute is required")
         end
         
-        it "should parse module prefs correctly with title attribute" do
-          double_moduleprefs_title_xml = <<EOS
-          <ModulePrefs
-            title="title1"
-            title="title2"/>          
-EOS
-          mps = ModulePrefs.new(Nokogiri::XML(double_moduleprefs_title_xml).root, SPEC_URL)
-          mps.title.should == "title1"
-        end
-
         it "should parse module prefs correctly with scrolling attribute" do
           scrolling_true_xml = <<EOS
           <ModulePrefs

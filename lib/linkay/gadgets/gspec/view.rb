@@ -2,6 +2,8 @@ module Linkay
   module Gadgets
     module GSpec
       class View
+        include GSpecParserHelper
+
         attr_reader :name, :content
 
         def initialize(key, elem, url)
@@ -11,19 +13,19 @@ module Linkay
         end
 
         def content_type
-          @attributes['type']
+          get_str_value_from_attr @attributes['type']
         end
 
         def preferred_height
-          @attributes['preferred_height'].to_i
+          get_num_value_from_attr @attributes['preferred_height']
         end
 
         def preferred_width
-          @attributes['preferred_width'].to_i
+          get_num_value_from_attr @attributes['preferred_width']
         end
 
         def href
-          @attributes['href']
+          get_str_value_from_attr @attributes['href']
         end
 
         def append_content(elem)
